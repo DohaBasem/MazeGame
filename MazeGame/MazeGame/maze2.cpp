@@ -32,6 +32,7 @@ public:bool wall;
 void display(void);
 void specialKeys(int key, int x, int y);
 void onKeyboard(unsigned char key, int x, int y);
+void keyUp(unsigned char key, int x, int y);
 void mouseMove(int x, int y);
 void mouseButton(int button, int state, int x, int y);
 void drawCube(void);
@@ -51,7 +52,8 @@ int g_Win;
 float g_X = 5.0f, g_Z = -40.5f, g_Y = 10.0f;
 //Sphere translations
 float x_T = 0.0f, y_T = 8.0f, z_T = 0.5f;
-
+float xAngle=0.0f;
+float yAngle=0.0f;
 //Mouse dragging
 const float PI = 3.141592653;
 float x, y, z;
@@ -88,7 +90,8 @@ int maze[] = { 1, 1, 1, 1, 1, 1, 1, 1,
 // main() function
 // ----------------------------------------------------------
 int main(int argc, char* argv[]){
-
+	//Sound
+	 PlaySound("bird_chirping2.wav", NULL, SND_ASYNC|SND_FILENAME|SND_LOOP);
 	//  Initialize GLUT and process user parameters
 	glutInit(&argc, argv);
 
@@ -125,6 +128,8 @@ int main(int argc, char* argv[]){
 	// Callback functions
 	glutDisplayFunc(display);
 	glutKeyboardFunc(onKeyboard);
+	glutKeyboardUpFunc(keyUp);
+	
 	glutSpecialFunc(specialKeys);
 	glutMouseFunc(mouseButton);
 	glutMotionFunc(mouseMove);
@@ -191,7 +196,7 @@ void display(void){
 		}
 	}
 	glPopMatrix();
-
+	
 	//Player of game -> sphere
 	glPushMatrix();
 	drawSphere();
@@ -225,7 +230,13 @@ void light(void)
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, g_Ambient);
 	
 }
+void keyUp(unsigned char key, int x, int y){
+	switch(key){
+	case ' ':
+		z_T+=3;
+	}
 
+}
 void onKeyboard(unsigned char key, int x, int y)
 {
 	switch (key)
@@ -252,6 +263,9 @@ void onKeyboard(unsigned char key, int x, int y)
 
 	case '-':
 		g_Z -= 0.05f;
+		break;
+	case ' ':
+		z_T -= 3.0f;
 		break;
 	case ESC_ASCII:
 		glutDestroyWindow(g_Win);
@@ -331,8 +345,9 @@ void specialKeys(int key, int x, int y) {
 		//y_T += 0.1;
 		temp = y_T + 0.1;
 		if (!collide(x_T, temp, 0.0f))
+		{yAngle+=20;
 			y_T += 0.1f;
-
+		}
 	}
 
 
@@ -341,18 +356,21 @@ void specialKeys(int key, int x, int y) {
 	{
 		temp = y_T - 0.1;
 		if (!collide(x_T, temp, 0.0f))
-			y_T -= 0.1;
+		{	y_T -= 0.1;
+		yAngle-=20;}
 	}
 	else if (key == GLUT_KEY_UP){
 		temp = x_T + 0.1;
 		if (!collide(temp, y_T, 0.0f))
-			x_T += 0.1;
+		{		x_T += 0.1;
+		xAngle+=20;}
 	}
 	else if (key == GLUT_KEY_DOWN)
 	{
 		temp = x_T - 0.1;
 		if (!collide(temp, y_T, 0.0f))
-			x_T -= 0.1;
+		{x_T -= 0.1;
+		xAngle+=20;}
 	}
 
 	//  Request display update
@@ -455,7 +473,9 @@ void drawSphere(void){
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, g_Specular);
 	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, g_Shininess); 
 
-	glTranslatef(x_T, y_T, z_T);	
+	glTranslatef(x_T, y_T, z_T);
+	glRotatef(xAngle,1,0,0);
+	glRotatef(yAngle,0,1,0);
 	glutSolidSphere(0.5, 30, 30);
 	glutPostRedisplay();
 }

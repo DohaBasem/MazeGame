@@ -115,7 +115,9 @@ int main(int argc, char* argv[]){
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);	//draw if the incoming depth value is less than or equal to the stored depth value
 	glEnable(GL_NORMALIZE);	//Enable auto-normalization of normal vectors
-	glEnable(GL_TEXTURE_2D);
+
+	//Perspective Calculations
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
 	CreateTexture(g_Texture[0], "roughwall_3d.bmp");
 	CreateTexture(g_Texture[1], "Grass01.bmp");
@@ -168,9 +170,9 @@ void display(void){
 				glTranslatef(xc*2.0f, yc*2.0f, 0.0f);
 
 				vertex v;
-				v.x = xc*2.0f;
-				v.y = yc*2.0f;
-				v.z = 0.5f;
+				v.x = (xc*2.0f);
+				v.y = (yc*2.0f);
+				v.z = 0.0f;
 				v.wall = true;
 				boundary[xc + yc * 8] = v;
 
@@ -207,18 +209,15 @@ void light(void)
 	glEnable(GL_DIFFUSE);
 	glShadeModel(GL_SMOOTH);
 
-	//Perspective Calculations
-	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
 	//Setup light 0 
 	float light0Ambient[] = {0.0f, 0.0f, 0.0f};	
-	float lightPosition[4] = { 30, 30, -20, 1 };
+	float lightPosition[4] = { 25, 30, 20, 0 };
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, light0Ambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, g_Diffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, g_Specular);
-	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 0.0000000000005f);
-	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.000000000005f);
+	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 0.0005f);
+	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.05f);
 	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0f);
 	glEnable(GL_LIGHT0);	//Enable light source 0
 
@@ -261,7 +260,7 @@ void onKeyboard(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
-bool collide(int x, int y, int z){
+bool collide(float x, float y, float z){
 	int yc, xc;
 	float p1x = x;
 	float p1y = y;
@@ -294,19 +293,27 @@ bool collide(int x, int y, int z){
 
 void specialKeys(int key, int x, int y) {
 	int yc;
-	int xc;
-	GLfloat d = 999;
+	int xc; 
+	float p1x; 
+	float p1y;
+	float p1z;
+	float p2x;
+	float p2y;
+	float p2z;
+	float temp;
+
+	//GLfloat d = 999;
 	//Calculate the distance from the current position of the ball to all the vertices in boundary
 	for (yc = 0; yc < 10; yc++)
 	{
 		for (xc = 0; xc < 8; xc++)
 		{
-			float p1x = x_T;
-			float p1y = y_T;
-			float p1z = z_T;
-			float p2x = boundary[xc + yc * 8].x;
-			float p2y = boundary[xc + yc * 8].y;
-			float p2z = boundary[xc + yc * 8].z;
+			p1x = x_T;
+			p1y = y_T;
+			p1z = z_T;
+			p2x = boundary[xc + yc * 8].x;
+			p2y = boundary[xc + yc * 8].y;
+			p2z = boundary[xc + yc * 8].z;
 			/*if (p2x == p1x || p1y==p2y ){
 			// calculate distance
 			{
@@ -322,8 +329,8 @@ void specialKeys(int key, int x, int y) {
 	if (key == GLUT_KEY_RIGHT){
 		//if(d>0.5+1)
 		//y_T += 0.1;
-		int temp = y_T + 0.1;
-		if (!collide(x_T, temp, -0.0f))
+		temp = y_T + 0.1;
+		if (!collide(x_T, temp, 0.0f))
 			y_T += 0.1f;
 
 	}
@@ -332,19 +339,19 @@ void specialKeys(int key, int x, int y) {
 	//  Left arrow - decrease rotation by 5 degree
 	else if (key == GLUT_KEY_LEFT)
 	{
-		int temp = y_T - 0.1;
-		if (!collide(x_T, temp, -0.0f))
+		temp = y_T - 0.1;
+		if (!collide(x_T, temp, 0.0f))
 			y_T -= 0.1;
 	}
 	else if (key == GLUT_KEY_UP){
-		int temp = x_T + 0.1;
-		if (!collide(temp, y_T, -0.0f))
+		temp = x_T + 0.1;
+		if (!collide(temp, y_T, 0.0f))
 			x_T += 0.1;
 	}
 	else if (key == GLUT_KEY_DOWN)
 	{
-		int temp = x_T - 0.1;
-		if (!collide(temp, y_T, -0.0f))
+		temp = x_T - 0.1;
+		if (!collide(temp, y_T, 0.0f))
 			x_T -= 0.1;
 	}
 
@@ -390,6 +397,8 @@ void drawCube(void){
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, cubeMaterial);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, g_Specular);
 
+
+	glEnable(GL_TEXTURE_2D);
 	//Texture Mapping
 	glBindTexture(GL_TEXTURE_2D, g_Texture[0]);
 
@@ -432,23 +441,19 @@ void drawCube(void){
 	glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, 1.0f, -1.0f);
 	glEnd();
 
+	glDisable(GL_TEXTURE_2D);
 	glutPostRedisplay();
 
 }
 
 void drawSphere(void){
 	//Red Sphere
-	float sphereMaterial[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	float lightYellow[] = { 0, 0, 1, 0 };
-	
-	//float gnan[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	//float sphereMaterial[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float blue[] = { 0, 0, 1, 1 };
 
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, lightYellow);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, lightYellow);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, sphereMaterial);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, g_Diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, blue);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, g_Specular);
-	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, g_Shininess);
+	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, g_Shininess); 
 
 	glTranslatef(x_T, y_T, z_T);	
 	glutSolidSphere(0.5, 30, 30);
@@ -468,6 +473,8 @@ void drawBackground(void){
 	//glMaterialfv(GL_FRONT, GL_EMISSION, red);
 	//glMateriali(GL_FRONT, GL_SHININESS, g_Shininess);
 
+	glEnable(GL_TEXTURE_2D);
+
 	glBindTexture(GL_TEXTURE_2D, g_Texture[1]);
 
 	glBegin(GL_QUADS);
@@ -476,6 +483,7 @@ void drawBackground(void){
 	glTexCoord2f(1.0f, 0.0f); glVertex3f(50.0f, 50.0f, 1.0f);
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(-50.0f, 50.0f, 1.0f);
 	glEnd();
+	glDisable(GL_TEXTURE_2D);
 
 }
 

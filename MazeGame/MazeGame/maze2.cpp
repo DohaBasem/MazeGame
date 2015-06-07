@@ -46,14 +46,14 @@ void light();
 UINT g_Texture[MAX_TEXTURES];
 
 //Window state -> terminate window
-int g_Win;					
+int g_Win;
 
 //Camera translations
 float g_X = 5.0f, g_Z = -40.5f, g_Y = 10.0f;
 //Sphere translations
 float x_T = 0.0f, y_T = 8.0f, z_T = 0.5f;
-float xAngle=0.0f;
-float yAngle=0.0f;
+float xAngle = 0.0f;
+float yAngle = 0.0f;
 //Mouse dragging
 const float PI = 3.141592653;
 float x, y, z;
@@ -66,7 +66,7 @@ bool isDragging = false;
 float g_Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 float g_Ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 float g_Specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-float g_Emission[] = { 0.0f, 0.0f, 0.0f, 1.0f }; 
+float g_Emission[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 int g_Shininess = 80;
 
@@ -91,7 +91,8 @@ int maze[] = { 1, 1, 1, 1, 1, 1, 1, 1,
 // ----------------------------------------------------------
 int main(int argc, char* argv[]){
 	//Sound
-	 PlaySound("bird_chirping2.wav", NULL, SND_ASYNC|SND_FILENAME|SND_LOOP);
+	PlaySound("bird_chirping2.wav", NULL, SND_ASYNC | SND_FILENAME | SND_LOOP);
+
 	//  Initialize GLUT and process user parameters
 	glutInit(&argc, argv);
 
@@ -122,14 +123,18 @@ int main(int argc, char* argv[]){
 	//Perspective Calculations
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-	CreateTexture(g_Texture[0], "roughwall_3d.bmp");
-	CreateTexture(g_Texture[1], "Grass01.bmp");
+	//maze
+	CreateTexture(g_Texture[0], "rubber.bmp");
+	//base
+	CreateTexture(g_Texture[1], "horizon.bmp");
+	//background
+	CreateTexture(g_Texture[2], "horizon - Copy.bmp");
 
 	// Callback functions
 	glutDisplayFunc(display);
 	glutKeyboardFunc(onKeyboard);
 	glutKeyboardUpFunc(keyUp);
-	
+
 	glutSpecialFunc(specialKeys);
 	glutMouseFunc(mouseButton);
 	glutMotionFunc(mouseMove);
@@ -196,7 +201,7 @@ void display(void){
 		}
 	}
 	glPopMatrix();
-	
+
 	//Player of game -> sphere
 	glPushMatrix();
 	drawSphere();
@@ -230,13 +235,15 @@ void light(void)
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, g_Ambient);
 	
 }
+
 void keyUp(unsigned char key, int x, int y){
-	switch(key){
+	switch (key){
 	case ' ':
-		z_T+=3;
+		z_T += 3;
 	}
 
 }
+
 void onKeyboard(unsigned char key, int x, int y)
 {
 	switch (key)
@@ -264,9 +271,11 @@ void onKeyboard(unsigned char key, int x, int y)
 	case '-':
 		g_Z -= 0.05f;
 		break;
+
 	case ' ':
 		z_T -= 3.0f;
 		break;
+
 	case ESC_ASCII:
 		glutDestroyWindow(g_Win);
 		exit(0);
@@ -316,7 +325,7 @@ void specialKeys(int key, int x, int y) {
 	float p2z;
 	float temp;
 
-	//GLfloat d = 999;
+	
 	//Calculate the distance from the current position of the ball to all the vertices in boundary
 	for (yc = 0; yc < 10; yc++)
 	{
@@ -328,49 +337,34 @@ void specialKeys(int key, int x, int y) {
 			p2x = boundary[xc + yc * 8].x;
 			p2y = boundary[xc + yc * 8].y;
 			p2z = boundary[xc + yc * 8].z;
-			/*if (p2x == p1x || p1y==p2y ){
-			// calculate distance
-			{
-			float d = sqrt(((p1x - p2x) * (p1x - p2x)) + ((p1y - p2y) * (p1y - p2y))
-			+ ((p1z - p2z) * (p1z - p2z)));
-			d = sqrt(d);
-			break;}
-			}*/
 		}
 	}
 
 	//  Right arrow - increase rotation by 5 degree
 	if (key == GLUT_KEY_RIGHT){
-		//if(d>0.5+1)
-		//y_T += 0.1;
 		temp = y_T + 0.1;
 		if (!collide(x_T, temp, 0.0f))
-		{yAngle+=20;
 			y_T += 0.1f;
-		}
-	}
 
+	}
 
 	//  Left arrow - decrease rotation by 5 degree
 	else if (key == GLUT_KEY_LEFT)
 	{
 		temp = y_T - 0.1;
 		if (!collide(x_T, temp, 0.0f))
-		{	y_T -= 0.1;
-		yAngle-=20;}
+			y_T -= 0.1;
 	}
 	else if (key == GLUT_KEY_UP){
 		temp = x_T + 0.1;
 		if (!collide(temp, y_T, 0.0f))
-		{		x_T += 0.1;
-		xAngle+=20;}
+			x_T += 0.1;
 	}
 	else if (key == GLUT_KEY_DOWN)
 	{
 		temp = x_T - 0.1;
 		if (!collide(temp, y_T, 0.0f))
-		{x_T -= 0.1;
-		xAngle+=20;}
+			x_T -= 0.1;
 	}
 
 	//  Request display update
@@ -473,9 +467,7 @@ void drawSphere(void){
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, g_Specular);
 	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, g_Shininess); 
 
-	glTranslatef(x_T, y_T, z_T);
-	glRotatef(xAngle,1,0,0);
-	glRotatef(yAngle,0,1,0);
+	glTranslatef(x_T, y_T, z_T);	
 	glutSolidSphere(0.5, 30, 30);
 	glutPostRedisplay();
 }
@@ -486,23 +478,28 @@ void drawBackground(void){
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, backgroundMaterial);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, g_Specular);
-	//glMaterialfv(GL_FRONT, GL_EMISSION, red);
-	//glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, g_Shininess);
-
-	//glMaterialfv(GL_FRONT, GL_SPECULAR, g_Specular);
-	//glMaterialfv(GL_FRONT, GL_EMISSION, red);
-	//glMateriali(GL_FRONT, GL_SHININESS, g_Shininess);
 
 	glEnable(GL_TEXTURE_2D);
 
 	glBindTexture(GL_TEXTURE_2D, g_Texture[1]);
 
 	glBegin(GL_QUADS);
-	glTexCoord2f(0.0f, 1.0f); glVertex3f(-50.0f, -50.0f, 1.0f);
-	glTexCoord2f(1.0f, 1.0f); glVertex3f(50.0f, -50.0f, 1.0f);
-	glTexCoord2f(1.0f, 0.0f); glVertex3f(50.0f, 50.0f, 1.0f);
-	glTexCoord2f(0.0f, 0.0f); glVertex3f(-50.0f, 50.0f, 1.0f);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(-100.0f, -100.0f, 1.0f);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(100.0f, -100.0f, 1.0f);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(100.0f, 100.0f, 1.0f);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(-100.0f, 100.0f, 1.0f);
 	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, g_Texture[2]);
+
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(100.0f, -100.0f, -100.0f);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(100.0f, 100.0f, -100.0f);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(100.0f, 100.0f, 1.0f);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(100.0f, -100.0f, 1.0f);
+	glEnd();
+
 	glDisable(GL_TEXTURE_2D);
 
 }
@@ -512,6 +509,7 @@ bool CreateTexture(GLuint &textureID, LPTSTR szFileName)                        
 {
 	HBITMAP hBMP;                                                                 // Handle Of The Bitmap
 	BITMAP  bitmap;																  // Bitmap Structure
+
 
 	glGenTextures(1, &textureID);                                                 // Create The Texture
 	hBMP = (HBITMAP)LoadImage(GetModuleHandle(NULL), szFileName, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION | LR_LOADFROMFILE);
